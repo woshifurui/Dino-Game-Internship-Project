@@ -31,7 +31,12 @@ player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 egg_surf = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
 egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
 
-
+def display_score(): 
+    current_time = pygame.time.get_ticks() // 100  
+    score_surf = game_font.render(f"Score: {current_time}", False, "Black")
+    score_rect = score_surf.get_rect(center=(400, 50))
+    screen.blit(score_surf, score_rect)
+    return current_time
 while running:
     # Poll for events
     for event in pygame.event.get():
