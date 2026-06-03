@@ -32,11 +32,12 @@ egg_surf = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
 egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
 
 def display_score(): 
-    current_time = pygame.time.get_ticks() // 100  
-    score_surf = game_font.render(f"Score: {current_time}", False, "Black")
+
+    current_time = pygame.time.get_ticks() // 1000
+    score_surf = game_font.render(f'Score: {current_time}', False, (64, 64, 64))
     score_rect = score_surf.get_rect(center=(400, 50))
     screen.blit(score_surf, score_rect)
-    return current_time
+
 while running:
     # Poll for events
     for event in pygame.event.get():
@@ -66,8 +67,8 @@ while running:
         screen.blit(GROUND_SURF, (0, GROUND_Y))
         pygame.draw.rect(screen, "#c0e8ec", score_rect)
         pygame.draw.rect(screen, "#c0e8ec", score_rect, 10)
-        screen.blit(score_surf, score_rect)
-
+        #screen.blit(score_surf, score_rect)
+        display_score()
         # Adjust egg's horizontal location then blit it
         egg_rect.x -= 5
         if egg_rect.right <= 0:
