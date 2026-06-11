@@ -46,10 +46,11 @@ pygame.time.set_timer(obstacle_timer, 1500)
 
 def display_score(): 
 
-    current_time = pygame.time.get_ticks() // 1000
+    current_time = pygame.time.get_ticks() // 1000 - start_time
     score_surf = game_font.render(f'Score: {current_time}', False, (64, 64, 64))
     score_rect = score_surf.get_rect(center=(400, 50))
     screen.blit(score_surf, score_rect)
+    return current_time
 
 def obstacle_movement(obstacle_list):
     if obstacle_list:
@@ -67,6 +68,7 @@ def obstacle_movement(obstacle_list):
         return []
 
 final_score = 0 
+start_time = 0
 
 while running:
     # Poll for events
@@ -94,6 +96,7 @@ while running:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 is_playing = True
                 obstacle_rect_list.clear()
+                start_time = pygame.time.get_ticks() // 1000
 
     
     if is_playing:
@@ -122,7 +125,7 @@ while running:
         for obstacle_rect in obstacle_rect_list:
             if obstacle_rect.colliderect(player_rect):
                 is_playing = False
-                final_score = pygame.time.get_ticks() // 1000
+                final_score = pygame.time.get_ticks() // 1000 - start_time
 
     # When game is over, display game over message
  # When game is over, display game over message
