@@ -25,6 +25,11 @@ game_font = pygame.font.Font(pygame.font.get_default_font(), 50)
 score_surf = game_font.render("SCORE?", False, "Black")
 score_rect = score_surf.get_rect(center=(400, 50))
 
+game_over_surf = game_font.render("GAME OVER", False, (111, 196, 169))
+game_over_rect = game_over_surf.get_rect(center=(400, 150))
+
+restart_surf = game_font.render("Press SPACE to restart", False, (111, 196, 169))
+restart_rect = restart_surf.get_rect(center=(400, 250))
 # Load sprite assets
 player_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
@@ -59,6 +64,8 @@ while running:
                 is_playing = True
                 egg_rect.left = 800
 
+    final_score = 0  # 用来定格死掉那一瞬间的分数
+
     if is_playing:
         screen.fill("purple")  # Wipe the screen
 
@@ -85,11 +92,22 @@ while running:
         # When player collides with enemy, game ends
         if egg_rect.colliderect(player_rect):
             is_playing = False
+            final_score = pygame.time.get_ticks() // 1000
 
     # When game is over, display game over message
+ # When game is over, display game over message
     else:
-        screen.fill("black")
+        screen.fill((94, 129, 162)) # 刷成好看的蓝灰色背景
 
+        
+        # 2. 实时生成一个“最终分数”的文字表面
+        final_score_surf = game_font.render(f"Final Score: {final_score}", False, (111, 196, 169))
+        final_score_rect = final_score_surf.get_rect(center=(400, 320)) # 放在重新开始提示的下面
+
+        # 3. 把所有的文字贴出来
+        screen.blit(game_over_surf, game_over_rect)
+        screen.blit(restart_surf, restart_rect)
+        screen.blit(final_score_surf, final_score_rect) # 贴出最终分数！
     # flip the display to put your work on screen
     pygame.display.flip()
 
