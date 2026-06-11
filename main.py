@@ -35,6 +35,14 @@ player_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alp
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 egg_surf = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
 egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
+# 1. 创建一个空列表，用来装以后生成的各种障碍物（这就是我们的怪物仓库）
+obstacle_rect_list = []
+
+# 2. 自定义一个专门属于“生成障碍物”的事件信号（闹钟）
+obstacle_timer = pygame.USEREVENT + 1
+
+# 3. 设置闹钟：每隔 1500 毫秒（1.5秒）让系统触发一次 obstacle_timer 事件
+pygame.time.set_timer(obstacle_timer, 1500)
 
 def display_score(): 
 
@@ -42,6 +50,23 @@ def display_score():
     score_surf = game_font.render(f'Score: {current_time}', False, (64, 64, 64))
     score_rect = score_surf.get_rect(center=(400, 50))
     screen.blit(score_surf, score_rect)
+
+def obstacle_movement(obstacle_list):
+    if obstacle_list:
+        for obstacle_rect in obstacle_list:
+            # 1. 让每个障碍物向左移动 5 个像素
+            obstacle_rect.x -= 5
+            
+            # 2. 把蛋画在屏幕上
+            screen.blit(egg_surf, obstacle_rect)
+            
+        # 3. 过滤掉已经滚出屏幕左侧的 Rect，防止列表无限变大导致卡顿
+        obstacle_list = [obs for obs in obstacle_list if obs.right > 0]
+        return obstacle_list
+    else:
+        return []
+
+final_score = 0 
 
 while running:
     # Poll for events
@@ -51,6 +76,12 @@ while running:
             running = False
 
         elif is_playing:
+            # ⭐ 新增逻辑：如果闹钟响了，说明该生成新怪物了！
+            if event.type == obstacle_timer:
+                # 每次闹钟响，就创建一个新的蛋的 Rect，并把它扔进仓库列表里
+                new_egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
+                obstacle_rect_list.append(new_egg_rect)
+
             # When player wants to jump by pressing SPACE
             if (
                 event.type == pygame.KEYDOWN
@@ -62,10 +93,9 @@ while running:
             # When player wants to play again by pressing SPACE
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 is_playing = True
-                egg_rect.left = 800
+                obstacle_rect_list.clear()
 
-    final_score = 0  # 用来定格死掉那一瞬间的分数
-
+    
     if is_playing:
         screen.fill("purple")  # Wipe the screen
 
@@ -77,10 +107,8 @@ while running:
         #screen.blit(score_surf, score_rect)
         display_score()
         # Adjust egg's horizontal location then blit it
-        egg_rect.x -= 5
-        if egg_rect.right <= 0:
-            egg_rect.left = 800
-        screen.blit(egg_surf, egg_rect)
+       # ⭐ 换成我们的新函数，让多颗蛋动起来，并更新列表
+        obstacle_rect_list = obstacle_movement(obstacle_rect_list) 
 
         # Adjust player's vertical location then blit it
         players_gravity_speed += 1
@@ -90,9 +118,11 @@ while running:
         screen.blit(player_surf, player_rect)
 
         # When player collides with enemy, game ends
-        if egg_rect.colliderect(player_rect):
-            is_playing = False
-            final_score = pygame.time.get_ticks() // 1000
+        # ⭐ 换成批量碰撞检测
+        for obstacle_rect in obstacle_rect_list:
+            if obstacle_rect.colliderect(player_rect):
+                is_playing = False
+                final_score = pygame.time.get_ticks() // 1000
 
     # When game is over, display game over message
  # When game is over, display game over message
