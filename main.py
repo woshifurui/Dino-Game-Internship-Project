@@ -31,7 +31,14 @@ game_over_rect = game_over_surf.get_rect(center=(400, 150))
 restart_surf = game_font.render("Press SPACE to restart", False, (111, 196, 169))
 restart_rect = restart_surf.get_rect(center=(400, 250))
 # Load sprite assets
-player_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+
+run_sprites = [
+    pygame.image.load("graphics/player/player_walk_1.png").convert_alpha(),
+    pygame.image.load("graphics/player/player_walk_2.png").convert_alpha()
+]
+jump_sprite = pygame.image.load("graphics/player/player_jump.png").convert_alpha()
+frame_counter = 0.0  
+player_surf = run_sprites[0] 
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 egg_surf = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
 egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
