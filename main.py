@@ -31,7 +31,12 @@ game_over_rect = game_over_surf.get_rect(center=(400, 150))
 restart_surf = game_font.render("Press SPACE to restart", False, (111, 196, 169))
 restart_rect = restart_surf.get_rect(center=(400, 250))
 # Load sprite assets
+# 🌟【战斗系统 1】：加载击打动作贴图（比如如果没有专门的挥拳图，可以先用跳跃图或别的图代替，这里我们用 jump 演示，你有专门的攻击图可以换名字）
+attack_sprite = pygame.image.load("graphics/player/jump.png").convert_alpha()
 
+# 战斗核心控制状态
+is_attacking = False      # 恐龙当前是否正在出拳
+attack_cooldown = 0       # 攻击冷却/持续时间计数器（防止无限出拳）
 run_sprites = [
     pygame.image.load("graphics/player/player_walk_1.png").convert_alpha(),
     pygame.image.load("graphics/player/player_walk_2.png").convert_alpha()
@@ -50,6 +55,21 @@ obstacle_timer = pygame.USEREVENT + 1
 
 # 3. 设置闹钟：每隔 1500 毫秒（1.5秒）让系统触发一次 obstacle_timer 事件
 pygame.time.set_timer(obstacle_timer, 1500)
+
+def update_player_visuals():
+    global player_surf, frame_counter
+    
+    # 优先度 1：如果正在发动击打，强制换成攻击皮肤（借用 jump 动作）
+    if is_attacking:
+        player_surf = jump_sprite
+    # 优先度 2：如果在空中，播放跳跃
+    elif player_rect.bottom < GROUND_Y:
+        player_surf = jump_sprite
+    # 优先度 3：在地上正常跑步
+    else:
+        frame_counter += 0.15 
+        current_frame = int(frame_counter) % len(run_sprites)
+        player_surf = run_sprites[current_frame]
 
 def display_score(): 
 
@@ -98,6 +118,12 @@ while running:
                 or event.type == pygame.MOUSEBUTTONDOWN
             ) and player_rect.bottom >= GROUND_Y:
                 players_gravity_speed = JUMP_GRAVITY_START_SPEED
+                # ⭐【战斗系统 2】：监听 J 键，触发攻击状态
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_J:
+                # 只有在没有处于攻击冷却中，且踩在地上时才能发动击打
+                if not is_attacking and player_rect.bottom >= GROUND_Y:
+                    is_attacking = True
+                    attack_cooldown = 10  # 攻击状态持续 10 帧（大约 0.16 秒）
         else:
             # When player wants to play again by pressing SPACE
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
@@ -125,8 +151,23 @@ while running:
         player_rect.y += players_gravity_speed
         if player_rect.bottom > GROUND_Y:
             player_rect.bottom = GROUND_Y
-        screen.blit(player_surf, player_rect)
 
+        # ⭐【战斗逻辑 A】：让攻击计时器动起来
+        if is_attacking:
+            attack_cooldown -= 1
+            if attack_cooldown <= 0:
+                is_attacking = False # 10帧时间到，自动收招恢复跑步
+        update_player_visuals()    
+        screen.blit(player_surf, player_rect)
+        # ⭐【战斗逻辑 B】：出拳期间的 Hitbox 碎蛋检测
+        if is_attacking:
+            # 在恐龙右侧边缘往前延伸 60 像素，生成一个 60x60 的隐形攻击矩形
+            attack_hitbox = pygame.Rect(player_rect.right, player_rect.y, 60, 60)
+            
+            # 倒序遍历列表（防止在循环中直接删除元素导致跳项或报错）
+            for obstacle_rect in obstacle_rect_list[:]:
+                if attack_hitbox.colliderect(obstacle_rect):
+                    obstacle_rect_list.remove(obstacle_rect) # 蛋碎了！直接踢飞！
         # When player collides with enemy, game ends
         # ⭐ 换成批量碰撞检测
         for obstacle_rect in obstacle_rect_list:
