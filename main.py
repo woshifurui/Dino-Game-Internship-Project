@@ -17,7 +17,7 @@ is_playing = True  # Whether in game or in menu
 GROUND_Y = 300  # The Y-coordinate of the ground level
 JUMP_GRAVITY_START_SPEED = -20  # The speed at which the player jumps
 players_gravity_speed = 0  # The current speed at which the player falls
-
+obstacle_speed = 5.0
 # Load level assets
 SKY_SURF = pygame.image.load("graphics/level/sky.png").convert()
 GROUND_SURF = pygame.image.load("graphics/level/ground.png").convert()
@@ -80,14 +80,16 @@ def display_score():
     return current_time
 
 def obstacle_movement(obstacle_list):
+    global obstacle_speed  #  声明我们要修改这个全局速度
     if obstacle_list:
         for obstacle_rect in obstacle_list:
-            # 1. 让每个障碍物向左移动 5 个像素
-            obstacle_rect.x -= 5
+            # ❌ 把原本的 obstacle_rect.x -= 5 改成：
+            obstacle_rect.x -= int(obstacle_speed)  # 使用动态速度
             
             # 2. 把蛋画在屏幕上
             screen.blit(egg_surf, obstacle_rect)
-            
+        if obstacle_speed < 15.0:  # 设置一个速度上限，防止速度太快无解
+            obstacle_speed += 0.002    
         # 3. 过滤掉已经滚出屏幕左侧的 Rect，防止列表无限变大导致卡顿
         obstacle_list = [obs for obs in obstacle_list if obs.right > 0]
         return obstacle_list
@@ -133,7 +135,9 @@ while running:
                 frame_counter = 0.0      # 动画计数器归零
                 is_attacking = False     # 强行关闭攻击状态
                 attack_cooldown = 0      # 冷却时间清零
+                obstacle_speed = 5.0  # ⭐ 追加这一行：复活时速度重置！
 
+ 
     
     if is_playing:
         screen.fill("purple")  # Wipe the screen
