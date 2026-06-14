@@ -32,7 +32,7 @@ restart_surf = game_font.render("Press SPACE to restart", False, (111, 196, 169)
 restart_rect = restart_surf.get_rect(center=(400, 250))
 # Load sprite assets
 # 🌟【战斗系统 1】：加载击打动作贴图（比如如果没有专门的挥拳图，可以先用跳跃图或别的图代替，这里我们用 jump 演示，你有专门的攻击图可以换名字）
-attack_sprite = pygame.image.load("graphics/player/jump.png").convert_alpha()
+attack_sprite = pygame.image.load("graphics/player/player_jump.png").convert_alpha()
 
 # 战斗核心控制状态
 is_attacking = False      # 恐龙当前是否正在出拳
@@ -57,7 +57,7 @@ obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer, 1500)
 
 def update_player_visuals():
-    global player_surf, frame_counter
+    global player_surf, frame_counter, is_attacking
     
     # 优先度 1：如果正在发动击打，强制换成攻击皮肤（借用 jump 动作）
     if is_attacking:
@@ -119,7 +119,7 @@ while running:
             ) and player_rect.bottom >= GROUND_Y:
                 players_gravity_speed = JUMP_GRAVITY_START_SPEED
                 # ⭐【战斗系统 2】：监听 J 键，触发攻击状态
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_J:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_j:
                 # 只有在没有处于攻击冷却中，且踩在地上时才能发动击打
                 if not is_attacking and player_rect.bottom >= GROUND_Y:
                     is_attacking = True
@@ -130,6 +130,9 @@ while running:
                 is_playing = True
                 obstacle_rect_list.clear()
                 start_time = pygame.time.get_ticks() // 1000
+                frame_counter = 0.0      # 动画计数器归零
+                is_attacking = False     # 强行关闭攻击状态
+                attack_cooldown = 0      # 冷却时间清零
 
     
     if is_playing:
